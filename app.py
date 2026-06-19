@@ -153,7 +153,7 @@ with left:
 
     c1, c2 = st.columns(2)
     with c1:
-        bg_color = st.color_picker("背景カラー", "#F0F0F0")
+        bg_color = st.color_picker("背景カラー", "#FBFAF9")
     with c2:
         accent_color = st.color_picker("アクセントカラー", "#2DD4BF")
 
