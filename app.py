@@ -20,16 +20,17 @@ install_playwright()
 
 # ── HTML テンプレート ─────────────────────────────────────
 def build_html(photo_b64, photo_mime, subtitle, main_title, bg_color, accent_color, sub_size, title_size, width, height):
-    pad        = max(40, int(width * 0.04))
-    gap        = max(20, int(width * 0.02))
-    photo_w    = int(width * 0.47)
+    pad        = max(40, int(width * 0.038))
+    gap        = max(20, int(width * 0.018))
+    photo_w    = int(width * 0.50)
     photo_h    = height - pad * 2
-    radius     = max(12, int(photo_h * 0.045))
-    badge_fs   = max(13, int(height * 0.038))
-    badge_py   = int(badge_fs * 0.35)
-    badge_px   = int(badge_fs * 0.9)
-    deco_fs    = max(36, int(height * 0.13))
-    text_gap   = max(10, int(height * 0.035))
+    radius     = max(16, int(photo_h * 0.06))
+    inner_pad  = max(10, int(photo_h * 0.04))
+    badge_fs   = max(13, int(height * 0.036))
+    badge_py   = int(badge_fs * 0.38)
+    badge_px   = int(badge_fs * 1.0)
+    deco_fs    = max(36, int(height * 0.14))
+    text_gap   = max(10, int(height * 0.038))
 
     return f"""<!DOCTYPE html>
 <html lang="ja">
@@ -54,14 +55,14 @@ body {{
   display:flex; flex-direction:column;
   justify-content:center;
   gap:{text_gap}px;
-  padding-bottom:{int(height * 0.06)}px;
+  padding-bottom:{int(height * 0.04)}px;
 }}
 .badge {{
   display:inline-flex; align-items:center;
   background:{accent_color}; color:#fff;
   font-size:{badge_fs}px; font-weight:700;
   padding:{badge_py}px {badge_px}px;
-  border-radius:999px; letter-spacing:.02em;
+  border-radius:999px; letter-spacing:.04em;
   width:max-content;
 }}
 .sub {{
@@ -79,6 +80,10 @@ body {{
   position:relative;
   width:{photo_w}px; height:{photo_h}px;
   flex-shrink:0;
+  background:rgba(255,255,255,0.85);
+  border-radius:{radius}px;
+  padding:{inner_pad}px;
+  display:flex; align-items:center; justify-content:center;
 }}
 .leaf {{
   position:absolute;
@@ -87,7 +92,8 @@ body {{
 }}
 .photo {{
   width:100%; height:100%;
-  object-fit:cover; border-radius:{radius}px;
+  object-fit:contain;
+  border-radius:{max(4, radius - inner_pad)}px;
 }}
 </style>
 </head>
