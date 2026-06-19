@@ -24,7 +24,8 @@ def hex_to_rgba(hex_color: str, alpha: float) -> str:
 
 
 # ── HTML テンプレート ─────────────────────────────────────
-def build_html(photo_b64, photo_mime, subtitle, main_title, bg_color, accent_color, width, height):
+def build_html(photo_b64, photo_mime, subtitle, main_title, bg_color, accent_color,
+               sub_scale, title_scale, width, height):
     W, H = width, height
 
     # ── 右側画像エリア ──────────────────
@@ -45,7 +46,7 @@ def build_html(photo_b64, photo_mime, subtitle, main_title, bg_color, accent_col
     sub_x  = int(0.053 * W)
     sub_y  = int(0.310 * H)
     sub_mw = int(0.405 * W)
-    sub_fs = max(12, int(H * 0.059))
+    sub_fs = max(12, int(H * 0.059 * sub_scale))
 
     # ── アクセントライン ────────────────
     line_x = int(0.053 * W)
@@ -58,24 +59,20 @@ def build_html(photo_b64, photo_mime, subtitle, main_title, bg_color, accent_col
     ttl_y  = int(0.455 * H)
     ttl_mw = int(0.430 * W)
     ttl_mh = int(0.360 * H)
-    ttl_fs = max(18, int(H * 0.093))
+    ttl_fs = max(18, int(H * 0.093 * title_scale))
 
-    # ── 背景装飾 ────────────────────────
-    deco_tr_x = int(0.72 * W)
-    deco_tr_y = int(-0.20 * H)
-    deco_tr_w = int(0.42 * W)
-    deco_tr_h = int(0.70 * H)
+    # ── 背景装飾（SVG feGaussianBlur） ──
+    tr_cx = int(0.925 * W)
+    tr_cy = int(0.15 * H)
+    tr_rx = int(0.18 * W)
+    tr_ry = int(0.32 * H)
 
-    deco_bl_x = int(-0.06 * W)
-    deco_bl_y = int(0.72 * H)
-    deco_bl_w = int(0.36 * W)
-    deco_bl_h = int(0.55 * H)
+    bl_cx = int(0.10 * W)
+    bl_cy = int(1.08 * H)
+    bl_rx = int(0.16 * W)
+    bl_ry = int(0.28 * H)
 
-    blur_tr = max(20, int(deco_tr_w * 0.15))
-    blur_bl = max(20, int(deco_bl_w * 0.15))
-
-    c_tr = hex_to_rgba(accent_color, 0.13)
-    c_bl = hex_to_rgba(accent_color, 0.10)
+    blur_std = max(25, int(min(W, H) * 0.048))
 
     return f"""<!DOCTYPE html>
 <html lang="ja">
@@ -95,27 +92,22 @@ body {{
 <body>
 <div style="position:relative;width:{W}px;height:{H}px;overflow:hidden;">
 
-  <!-- 背景装飾：右上 -->
-  <div style="
-    position:absolute;
-    left:{deco_tr_x}px; top:{deco_tr_y}px;
-    width:{deco_tr_w}px; height:{deco_tr_h}px;
-    background:{c_tr};
-    border-radius:50%;
-    filter:blur({blur_tr}px);
-    pointer-events:none;
-  "></div>
-
-  <!-- 背景装飾：左下 -->
-  <div style="
-    position:absolute;
-    left:{deco_bl_x}px; top:{deco_bl_y}px;
-    width:{deco_bl_w}px; height:{deco_bl_h}px;
-    background:{c_bl};
-    border-radius:50%;
-    filter:blur({blur_bl}px);
-    pointer-events:none;
-  "></div>
+  <!-- 背景装飾：SVG -->
+  <svg style="position:absolute;top:0;left:0;width:{W}px;height:{H}px;pointer-events:none;overflow:visible;"
+       xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <filter id="f-tr" x="-80%" y="-80%" width="260%" height="260%">
+        <feGaussianBlur in="SourceGraphic" stdDeviation="{blur_std}"/>
+      </filter>
+      <filter id="f-bl" x="-80%" y="-80%" width="260%" height="260%">
+        <feGaussianBlur in="SourceGraphic" stdDeviation="{blur_std}"/>
+      </filter>
+    </defs>
+    <ellipse cx="{tr_cx}" cy="{tr_cy}" rx="{tr_rx}" ry="{tr_ry}"
+      fill="{accent_color}" opacity="0.15" filter="url(#f-tr)"/>
+    <ellipse cx="{bl_cx}" cy="{bl_cy}" rx="{bl_rx}" ry="{bl_ry}"
+      fill="{accent_color}" opacity="0.12" filter="url(#f-bl)"/>
+  </svg>
 
   <!-- 右側：画像エリア -->
   <div style="
@@ -205,10 +197,12 @@ def render(html: str, width: int, height: int) -> bytes:
 
 
 def generate(photo_bytes: bytes, photo_ext: str, subtitle: str, main_title: str,
-             bg_color: str, accent_color: str, width: int, height: int) -> bytes:
+             bg_color: str, accent_color: str, sub_scale: float, title_scale: float,
+             width: int, height: int) -> bytes:
     mime = "image/png" if photo_ext.lower() == "png" else "image/jpeg"
     photo_b64 = base64.b64encode(photo_bytes).decode()
-    html = build_html(photo_b64, mime, subtitle, main_title, bg_color, accent_color, width, height)
+    html = build_html(photo_b64, mime, subtitle, main_title, bg_color, accent_color,
+                      sub_scale, title_scale, width, height)
     return render(html, width, height)
 
 
@@ -231,6 +225,15 @@ with left:
     with c2:
         accent_color = st.color_picker("アクセントカラー", "#15977F")
 
+    st.markdown("**フォントサイズ**")
+    sub_opts   = {"小": 0.75, "中": 1.0, "大": 1.3}
+    title_opts = {"小": 0.75, "中": 1.0, "大": 1.25, "特大": 1.55}
+    fs1, fs2 = st.columns(2)
+    with fs1:
+        sub_scale   = sub_opts[st.selectbox("サブタイトル",   list(sub_opts.keys()),   index=1)]
+    with fs2:
+        title_scale = title_opts[st.selectbox("メインタイトル", list(title_opts.keys()), index=1)]
+
     ready        = bool(uploaded and subtitle.strip() and main_title.strip())
     generate_btn = st.button("MV を生成", type="primary", disabled=not ready)
 
@@ -250,8 +253,8 @@ with right:
         ext = uploaded.name.rsplit(".", 1)[-1]
 
         with st.spinner("生成中..."):
-            jpg_1920 = generate(photo_bytes, ext, subtitle, main_title, bg_color, accent_color, 1920, 550)
-            jpg_1200 = generate(photo_bytes, ext, subtitle, main_title, bg_color, accent_color, 1200, 450)
+            jpg_1920 = generate(photo_bytes, ext, subtitle, main_title, bg_color, accent_color, sub_scale, title_scale, 1920, 550)
+            jpg_1200 = generate(photo_bytes, ext, subtitle, main_title, bg_color, accent_color, sub_scale, title_scale, 1200, 450)
 
         st.image(jpg_1920, use_container_width=True, caption="1920×550")
         st.image(jpg_1200, use_container_width=True, caption="1200×450")
