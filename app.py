@@ -22,7 +22,7 @@ install_playwright()
 def build_html(photo_b64, photo_mime, subtitle, main_title, bg_color, accent_color, sub_size, title_size, width, height):
     pad        = max(40, int(width * 0.04))
     gap        = max(20, int(width * 0.02))
-    photo_w    = int(width * 0.43)
+    photo_w    = int(width * 0.47)
     photo_h    = height - pad * 2
     radius     = max(12, int(photo_h * 0.045))
     badge_fs   = max(13, int(height * 0.038))
@@ -52,7 +52,9 @@ body {{
 .left {{
   flex:1; min-width:0;
   display:flex; flex-direction:column;
+  justify-content:center;
   gap:{text_gap}px;
+  padding-bottom:{int(height * 0.06)}px;
 }}
 .badge {{
   display:inline-flex; align-items:center;
@@ -69,6 +71,9 @@ body {{
 .ttl {{
   font-size:{title_size}px; font-weight:900;
   color:#1a1a1a; line-height:1.25;
+  word-break: normal;
+  overflow-wrap: anywhere;
+  line-break: strict;
 }}
 .right {{
   position:relative;
@@ -117,9 +122,13 @@ def render(html, width, height):
 
 
 def generate(photo_bytes, photo_ext, subtitle, main_title, bg_color, accent_color, sub_size, title_size, width, height):
+    # キャンバス高さに比例してフォントをスケール（基準: 450px）
+    scale = height / 450
+    scaled_sub   = int(sub_size   * scale)
+    scaled_title = int(title_size * scale)
     mime = "image/png" if photo_ext.lower() == "png" else "image/jpeg"
     photo_b64 = base64.b64encode(photo_bytes).decode()
-    html = build_html(photo_b64, mime, subtitle, main_title, bg_color, accent_color, sub_size, title_size, width, height)
+    html = build_html(photo_b64, mime, subtitle, main_title, bg_color, accent_color, scaled_sub, scaled_title, width, height)
     return render(html, width, height)
 
 
@@ -147,7 +156,7 @@ with left:
     with cs:
         sub_size = st.selectbox("サブタイトル", [18, 22, 26, 30, 34], index=1, format_func=lambda x: f"{x}px")
     with ct:
-        title_size = st.selectbox("メインタイトル", [32, 38, 44, 50, 58, 66], index=2, format_func=lambda x: f"{x}px")
+        title_size = st.selectbox("メインタイトル", [32, 38, 44, 50, 58, 66], index=3, format_func=lambda x: f"{x}px")
 
     ready    = bool(uploaded and subtitle.strip() and main_title.strip())
     generate_btn = st.button("MV を生成", type="primary", disabled=not ready)
