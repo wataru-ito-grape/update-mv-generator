@@ -25,7 +25,7 @@ def hex_to_rgba(hex_color: str, alpha: float) -> str:
 
 # ── HTML テンプレート ─────────────────────────────────────
 def build_html(photo_b64, photo_mime, subtitle, main_title, bg_color, accent_color,
-               sub_fs, title_fs, width, height):
+               lbl_fs, sub_fs, title_fs, width, height):
     W, H = width, height
 
     # ── 右側画像エリア ──────────────────
@@ -38,7 +38,6 @@ def build_html(photo_b64, photo_mime, subtitle, main_title, bg_color, accent_col
     # ── 固定ラベル ──────────────────────
     lbl_x  = int(0.053 * W)
     lbl_y  = int(0.195 * H)
-    lbl_fs = max(10, int(H * 0.033))
     lbl_py = max(4,  int(lbl_fs * 0.35))
     lbl_px = max(10, int(lbl_fs * 0.90))
 
@@ -197,12 +196,12 @@ def render(html: str, width: int, height: int) -> bytes:
 
 
 def generate(photo_bytes: bytes, photo_ext: str, subtitle: str, main_title: str,
-             bg_color: str, accent_color: str, sub_fs: int, title_fs: int,
+             bg_color: str, accent_color: str, lbl_fs: int, sub_fs: int, title_fs: int,
              width: int, height: int) -> bytes:
     mime = "image/png" if photo_ext.lower() == "png" else "image/jpeg"
     photo_b64 = base64.b64encode(photo_bytes).decode()
     html = build_html(photo_b64, mime, subtitle, main_title, bg_color, accent_color,
-                      sub_fs, title_fs, width, height)
+                      lbl_fs, sub_fs, title_fs, width, height)
     return render(html, width, height)
 
 
@@ -226,20 +225,26 @@ with left:
         accent_color = st.color_picker("アクセントカラー", "#15977F")
 
     st.markdown("**フォントサイズ — 1920×550**")
-    fs1, fs2 = st.columns(2)
+    fs1, fs2, fs3 = st.columns(3)
     with fs1:
+        lbl_fs_1920   = st.selectbox("ラベル",         [10, 12, 14, 16, 18, 20], index=2,
+                                      format_func=lambda x: f"{x}px", key="lbl_1920")
+    with fs2:
         sub_fs_1920   = st.selectbox("サブタイトル",   [20, 24, 28, 32, 36, 40, 44], index=2,
                                       format_func=lambda x: f"{x}px", key="sub_1920")
-    with fs2:
+    with fs3:
         title_fs_1920 = st.selectbox("メインタイトル", [36, 42, 48, 54, 60, 68, 76], index=2,
                                       format_func=lambda x: f"{x}px", key="ttl_1920")
 
     st.markdown("**フォントサイズ — 1200×450**")
-    fs3, fs4 = st.columns(2)
-    with fs3:
+    fs4, fs5, fs6 = st.columns(3)
+    with fs4:
+        lbl_fs_1200   = st.selectbox("ラベル",         [10, 12, 14, 16, 18, 20], index=1,
+                                      format_func=lambda x: f"{x}px", key="lbl_1200")
+    with fs5:
         sub_fs_1200   = st.selectbox("サブタイトル",   [16, 20, 24, 28, 32, 36, 40], index=2,
                                       format_func=lambda x: f"{x}px", key="sub_1200")
-    with fs4:
+    with fs6:
         title_fs_1200 = st.selectbox("メインタイトル", [28, 34, 40, 46, 52, 58, 64], index=2,
                                       format_func=lambda x: f"{x}px", key="ttl_1200")
 
@@ -262,8 +267,8 @@ with right:
         ext = uploaded.name.rsplit(".", 1)[-1]
 
         with st.spinner("生成中..."):
-            jpg_1920 = generate(photo_bytes, ext, subtitle, main_title, bg_color, accent_color, sub_fs_1920, title_fs_1920, 1920, 550)
-            jpg_1200 = generate(photo_bytes, ext, subtitle, main_title, bg_color, accent_color, sub_fs_1200, title_fs_1200, 1200, 450)
+            jpg_1920 = generate(photo_bytes, ext, subtitle, main_title, bg_color, accent_color, lbl_fs_1920, sub_fs_1920, title_fs_1920, 1920, 550)
+            jpg_1200 = generate(photo_bytes, ext, subtitle, main_title, bg_color, accent_color, lbl_fs_1200, sub_fs_1200, title_fs_1200, 1200, 450)
 
         st.image(jpg_1920, use_container_width=True, caption="1920×550")
         st.image(jpg_1200, use_container_width=True, caption="1200×450")
