@@ -25,7 +25,7 @@ def hex_to_rgba(hex_color: str, alpha: float) -> str:
 
 # ── HTML テンプレート ─────────────────────────────────────
 def build_html(photo_b64, photo_mime, subtitle, main_title, bg_color, accent_color,
-               sub_scale, title_scale, width, height):
+               sub_fs, title_fs, width, height):
     W, H = width, height
 
     # ── 右側画像エリア ──────────────────
@@ -46,7 +46,7 @@ def build_html(photo_b64, photo_mime, subtitle, main_title, bg_color, accent_col
     sub_x  = int(0.053 * W)
     sub_y  = int(0.310 * H)
     sub_mw = int(0.405 * W)
-    sub_fs = max(12, int(H * 0.059 * sub_scale))
+
 
     # ── アクセントライン ────────────────
     line_x = int(0.053 * W)
@@ -59,7 +59,7 @@ def build_html(photo_b64, photo_mime, subtitle, main_title, bg_color, accent_col
     ttl_y  = int(0.455 * H)
     ttl_mw = int(0.430 * W)
     ttl_mh = int(0.360 * H)
-    ttl_fs = max(18, int(H * 0.093 * title_scale))
+    ttl_fs = title_fs
 
     # ── 背景装飾（SVG feGaussianBlur） ──
     tr_cx = int(0.925 * W)
@@ -197,12 +197,12 @@ def render(html: str, width: int, height: int) -> bytes:
 
 
 def generate(photo_bytes: bytes, photo_ext: str, subtitle: str, main_title: str,
-             bg_color: str, accent_color: str, sub_scale: float, title_scale: float,
+             bg_color: str, accent_color: str, sub_fs: int, title_fs: int,
              width: int, height: int) -> bytes:
     mime = "image/png" if photo_ext.lower() == "png" else "image/jpeg"
     photo_b64 = base64.b64encode(photo_bytes).decode()
     html = build_html(photo_b64, mime, subtitle, main_title, bg_color, accent_color,
-                      sub_scale, title_scale, width, height)
+                      sub_fs, title_fs, width, height)
     return render(html, width, height)
 
 
@@ -226,13 +226,13 @@ with left:
         accent_color = st.color_picker("アクセントカラー", "#15977F")
 
     st.markdown("**フォントサイズ**")
-    sub_opts   = {"小": 0.75, "中": 1.0, "大": 1.3}
-    title_opts = {"小": 0.75, "中": 1.0, "大": 1.25, "特大": 1.55}
     fs1, fs2 = st.columns(2)
     with fs1:
-        sub_scale   = sub_opts[st.selectbox("サブタイトル",   list(sub_opts.keys()),   index=1)]
+        sub_fs   = st.selectbox("サブタイトル",   [20, 24, 28, 32, 36, 40, 44], index=2,
+                                 format_func=lambda x: f"{x}px")
     with fs2:
-        title_scale = title_opts[st.selectbox("メインタイトル", list(title_opts.keys()), index=1)]
+        title_fs = st.selectbox("メインタイトル", [36, 42, 48, 54, 60, 68, 76], index=2,
+                                 format_func=lambda x: f"{x}px")
 
     ready        = bool(uploaded and subtitle.strip() and main_title.strip())
     generate_btn = st.button("MV を生成", type="primary", disabled=not ready)
@@ -253,8 +253,8 @@ with right:
         ext = uploaded.name.rsplit(".", 1)[-1]
 
         with st.spinner("生成中..."):
-            jpg_1920 = generate(photo_bytes, ext, subtitle, main_title, bg_color, accent_color, sub_scale, title_scale, 1920, 550)
-            jpg_1200 = generate(photo_bytes, ext, subtitle, main_title, bg_color, accent_color, sub_scale, title_scale, 1200, 450)
+            jpg_1920 = generate(photo_bytes, ext, subtitle, main_title, bg_color, accent_color, sub_fs, title_fs, 1920, 550)
+            jpg_1200 = generate(photo_bytes, ext, subtitle, main_title, bg_color, accent_color, sub_fs, title_fs, 1200, 450)
 
         st.image(jpg_1920, use_container_width=True, caption="1920×550")
         st.image(jpg_1200, use_container_width=True, caption="1200×450")
