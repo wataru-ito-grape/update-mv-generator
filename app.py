@@ -44,7 +44,7 @@ def build_html(photo_b64, photo_mime, subtitle, main_title, bg_color, accent_col
     # ── サブタイトル ────────────────────
     sub_x  = int(0.053 * W)
     sub_y  = int(0.310 * H)
-    sub_mw = int(0.405 * W)
+    sub_mw = int(0.370 * W)
 
 
     # ── アクセントライン ────────────────
@@ -56,7 +56,7 @@ def build_html(photo_b64, photo_mime, subtitle, main_title, bg_color, accent_col
     # ── メインタイトル ──────────────────
     ttl_x  = int(0.052 * W)
     ttl_y  = int(0.455 * H)
-    ttl_mw = int(0.430 * W)
+    ttl_mw = int(0.390 * W)
     ttl_mh = int(0.360 * H)
     ttl_fs = title_fs
 
