@@ -225,14 +225,23 @@ with left:
     with c2:
         accent_color = st.color_picker("アクセントカラー", "#15977F")
 
-    st.markdown("**フォントサイズ**")
+    st.markdown("**フォントサイズ — 1920×550**")
     fs1, fs2 = st.columns(2)
     with fs1:
-        sub_fs   = st.selectbox("サブタイトル",   [20, 24, 28, 32, 36, 40, 44], index=2,
-                                 format_func=lambda x: f"{x}px")
+        sub_fs_1920   = st.selectbox("サブタイトル",   [20, 24, 28, 32, 36, 40, 44], index=2,
+                                      format_func=lambda x: f"{x}px", key="sub_1920")
     with fs2:
-        title_fs = st.selectbox("メインタイトル", [36, 42, 48, 54, 60, 68, 76], index=2,
-                                 format_func=lambda x: f"{x}px")
+        title_fs_1920 = st.selectbox("メインタイトル", [36, 42, 48, 54, 60, 68, 76], index=2,
+                                      format_func=lambda x: f"{x}px", key="ttl_1920")
+
+    st.markdown("**フォントサイズ — 1200×450**")
+    fs3, fs4 = st.columns(2)
+    with fs3:
+        sub_fs_1200   = st.selectbox("サブタイトル",   [16, 20, 24, 28, 32, 36, 40], index=2,
+                                      format_func=lambda x: f"{x}px", key="sub_1200")
+    with fs4:
+        title_fs_1200 = st.selectbox("メインタイトル", [28, 34, 40, 46, 52, 58, 64], index=2,
+                                      format_func=lambda x: f"{x}px", key="ttl_1200")
 
     ready        = bool(uploaded and subtitle.strip() and main_title.strip())
     generate_btn = st.button("MV を生成", type="primary", disabled=not ready)
@@ -253,8 +262,8 @@ with right:
         ext = uploaded.name.rsplit(".", 1)[-1]
 
         with st.spinner("生成中..."):
-            jpg_1920 = generate(photo_bytes, ext, subtitle, main_title, bg_color, accent_color, sub_fs, title_fs, 1920, 550)
-            jpg_1200 = generate(photo_bytes, ext, subtitle, main_title, bg_color, accent_color, sub_fs, title_fs, 1200, 450)
+            jpg_1920 = generate(photo_bytes, ext, subtitle, main_title, bg_color, accent_color, sub_fs_1920, title_fs_1920, 1920, 550)
+            jpg_1200 = generate(photo_bytes, ext, subtitle, main_title, bg_color, accent_color, sub_fs_1200, title_fs_1200, 1200, 450)
 
         st.image(jpg_1920, use_container_width=True, caption="1920×550")
         st.image(jpg_1200, use_container_width=True, caption="1200×450")
